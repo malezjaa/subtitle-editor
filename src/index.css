@@ -1,3 +1,12 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+.player-wrapper {
+  position: relative;
+}
+
+.react-player {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
