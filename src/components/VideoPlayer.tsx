@@ -1,9 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import ReactPlayer from "react-player";
 import video from "../assets/video.mp4";
 import { Subtitle } from "./Subtitles";
 import { BsFillPlayFill, BsFillStopFill } from "react-icons/bs";
-import Timeline from "./Timeline";
 
 type Props = {
   subs: string | undefined;
@@ -11,7 +10,13 @@ type Props = {
 
 const VideoPlayer = ({ subs }: Props) => {
   const [play, setPlay] = useState(false);
-  const [duration, setDuration] = useState<number>();
+  const [maxDuration, setMaxDuration] = useState<number>();
+  const [duration, setDuration] = useState<number>(0);
+  const [player, setPlayer] = useState<ReactPlayer>();
+
+  const ref = (player: any) => {
+    setPlayer(player);
+  };
 
   return (
     <>
@@ -22,6 +27,8 @@ const VideoPlayer = ({ subs }: Props) => {
         height="100%"
         pip
         playing={play}
+        ref={ref}
+        onProgress={(e) => setDuration(e.playedSeconds)}
         config={{
           file: {
             tracks: [
@@ -34,18 +41,20 @@ const VideoPlayer = ({ subs }: Props) => {
             ],
           },
         }}
-        onDuration={(e) => setDuration(e)}
+        onDuration={(e) => setMaxDuration(e)}
       />
 
-      <div className="w-full pl-2">
+      <div className="w-full pl-20">
         <input
-          id="default-range"
           type="range"
-          value={0}
-          max={duration}
-          min={0}
-          className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
-        ></input>
+          min="0"
+          max={maxDuration}
+          value={duration}
+          onChange={(e) => {
+            player?.seekTo();
+          }}
+          className="range"
+        />
       </div>
 
       <div className="flex flex-row m-3 ml-[5rem] gap-5">

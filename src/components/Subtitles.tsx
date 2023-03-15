@@ -65,7 +65,7 @@ const Subtitles = ({ subtitles, setSubtitles, setAss }: Props) => {
   }, []);
 
   return (
-    <div className="w-full flex flex-col pl-20 pr-20 h-[280px]  overflow-y-scroll">
+    <div className="w-full flex flex-col pl-20 pr-20 h-[280px]  overflow-y-scroll mt-10">
       {subtitles ? (
         ""
       ) : (
@@ -86,8 +86,8 @@ const Subtitles = ({ subtitles, setSubtitles, setAss }: Props) => {
                 className="text-white w-full rounded-lg flex h-[40px]"
                 key={i}
               >
-                <div className="flex flex-row w-full relative h-full border-[1px] border-indigo-600">
-                  <p className="h-full px-3 p-[0.25rem] border-solid border-l-[1px] border-indigo-600 text-primary">
+                <div className="flex flex-row w-full relative h-full border-[1px] border-indigo-600 bg-white">
+                  <p className="h-full px-3 p-[0.25rem] border-solid border-l-[1px] border-indigo-600 text-primary bg-white">
                     <strong>{i + 1}</strong>
                   </p>
                   <Input isTextArea={false} subtitle={e} phase={"start"} />
