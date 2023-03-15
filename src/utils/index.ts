@@ -41,7 +41,7 @@ export function readFile(file: any) {
   });
 }
 
-export default function ass2vtt(ass: string) {
+export default function ass2vtt(ass: string | undefined) {
   const re_ass = new RegExp(
     "Dialogue:\\s\\d," +
       "(\\d+:\\d\\d:\\d\\d.\\d\\d)," +
@@ -54,34 +54,21 @@ export default function ass2vtt(ass: string) {
   );
 
   function fixTime(time = "") {
-    return time
-      .split(/[:.]/)
-      .map((item, index, arr) => {
-        if (index === arr.length - 1) {
-          if (item.length === 1) {
-            return "." + item + "00";
-          } else if (item.length === 2) {
-            return "." + item + "0";
-          }
-        } else {
-          if (item.length === 1) {
-            return (index === 0 ? "0" : ":0") + item;
-          }
-        }
+    const timeArray = time.split(/:/);
+    const secondsArray = timeArray[2].split(/\./);
 
-        return index === 0
-          ? item
-          : index === arr.length - 1
-          ? "." + item
-          : ":" + item;
-      })
-      .join("");
+    const hours = timeArray[0].padStart(2, "0");
+    const minutes = timeArray[1].padStart(2, "0");
+    const seconds = secondsArray[0].padStart(2, "0");
+    const milliseconds = secondsArray[1].padEnd(3, "0");
+
+    return `${hours}:${minutes}:${seconds}.${milliseconds}`;
   }
 
   return (
     "WEBVTT\n\n" +
     ass
-      .split(/\r?\n/)
+      ?.split(/\r?\n/)
       .map((line) => {
         const m = line.match(re_ass);
         if (!m) return null;

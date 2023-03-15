@@ -3,6 +3,8 @@ import ReactPlayer from "react-player";
 import video from "../assets/video.mp4";
 import { Subtitle } from "./Subtitles";
 import { BsFillPlayFill, BsFillStopFill } from "react-icons/bs";
+import ass2vtt from "../utils";
+import { parse } from "subtitle";
 
 type Props = {
   subs: string | undefined;
@@ -13,16 +15,48 @@ const VideoPlayer = ({ subs }: Props) => {
   const [maxDuration, setMaxDuration] = useState<number>();
   const [duration, setDuration] = useState<number>(0);
   const [player, setPlayer] = useState<ReactPlayer>();
+  const [vtt, setVtt] = useState<string>();
+  const [track, setTrack] = useState<any>();
 
   const ref = (player: any) => {
     setPlayer(player);
   };
 
+  useEffect(() => {
+    const x = ass2vtt(subs);
+
+    setVtt(x);
+  }, [subs]);
+
+  useEffect(() => {
+    if (vtt && subs) {
+      const reader = new FileReader();
+      reader.readAsArrayBuffer(new Blob([vtt], { type: "text/vtt" }));
+      reader.onload = () => {
+        const byteArray = new Uint8Array(reader.result as ArrayBuffer);
+        const blob = new Blob([byteArray], { type: "text/vtt" });
+        const url = URL.createObjectURL(blob);
+        setTrack({
+          kind: "subtitles",
+          src: url,
+          srcLang: "en",
+          label: "English",
+          default: true,
+        });
+      };
+    }
+  }, [vtt]);
+
+  useEffect(() => {
+    console.log(track);
+  }, [track]);
+
   return (
     <>
       <ReactPlayer
         url={video}
-        className="pl-20"
+        key={track?.src}
+        className="pl-20 m-5"
         width="100%"
         height="100%"
         pip
@@ -31,14 +65,7 @@ const VideoPlayer = ({ subs }: Props) => {
         onProgress={(e) => setDuration(e.playedSeconds)}
         config={{
           file: {
-            tracks: [
-              {
-                src: "/src/assets/subtitles.ass",
-                kind: "subtitles",
-                srcLang: "en",
-                label: "idk",
-              },
-            ],
+            tracks: [track],
           },
         }}
         onDuration={(e) => setMaxDuration(e)}

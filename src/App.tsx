@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Subtitles, { Subtitle } from "./components/Subtitles";
 import VideoPlayer from "./components/VideoPlayer";
+import ass2vtt from "./utils";
 
 function App() {
   const [subtitles, setSubtitles] = useState<Subtitle[]>();
@@ -10,7 +11,7 @@ function App() {
   return (
     <>
       <div className="flex flex-col w-full h-[100vh]">
-        <div className="flex flex-col pt-10 w-[40%] h-1/2 justify-center items-center">
+        <div className="flex flex-col pt-10 h-[40%] w-[60%] justify-center items-center mt-[3.5rem] mb-[3.5rem]">
           <VideoPlayer subs={ass} />
         </div>
         <Subtitles
