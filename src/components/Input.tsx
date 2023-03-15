@@ -12,7 +12,7 @@ const Input = ({ subtitle, isTextArea, phase }: Props) => {
   return (
     <>
       {isTextArea && (
-        <textarea className="w-full text-primary h-full border-solid border-r-[1px] border-indigo-600 pl-2 bg-white focus:outline-none">
+        <textarea className="w-full text-primary h-full border-solid border-[1px] border-indigo-600 pl-2 bg-white focus:outline-none">
           {subtitle?.Text.raw}
         </textarea>
       )}

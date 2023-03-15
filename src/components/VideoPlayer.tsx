@@ -44,14 +44,15 @@ const VideoPlayer = ({ subs }: Props) => {
         onDuration={(e) => setMaxDuration(e)}
       />
 
-      <div className="w-full pl-20">
+      <div className="w-full pl-20 flex flex-col">
         <input
           type="range"
           min="0"
           max={maxDuration}
           value={duration}
           onChange={(e) => {
-            player?.seekTo();
+            player?.seekTo(e.target.valueAsNumber);
+            setDuration(e.target.valueAsNumber);
           }}
           className="range"
         />

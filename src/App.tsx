@@ -5,6 +5,7 @@ import VideoPlayer from "./components/VideoPlayer";
 function App() {
   const [subtitles, setSubtitles] = useState<Subtitle[]>();
   const [ass, setAss] = useState<string>();
+  const [currentSub, setCurrentSub] = useState<Subtitle | undefined>();
 
   return (
     <>
@@ -16,6 +17,8 @@ function App() {
           subtitles={subtitles}
           setAss={setAss}
           setSubtitles={setSubtitles}
+          setCurrentSub={setCurrentSub}
+          currentSub={currentSub}
         />
       </div>
     </>
