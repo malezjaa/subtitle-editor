@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { file2sub, readFile } from "../utils";
-import { Subtitle } from "./Subtitles";
+import { Subtitle } from "../utils/types";
 
 type Props = {
   subtitle?: Subtitle;

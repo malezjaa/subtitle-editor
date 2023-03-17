@@ -1,5 +1,6 @@
 import { getExt } from "../components/Subtitles";
 import { parse, stringify, compile, decompile } from "ass-compiler";
+import { Subtitle } from "./types";
 
 export function file2sub(file: any) {
   return new Promise((resolve, reject) => {
@@ -11,6 +12,7 @@ export function file2sub(file: any) {
       switch (ext) {
         case "ass": {
           const parsedASS = parse(text);
+          console.log(parsedASS);
           resolve(parsedASS);
           break;
         }
@@ -41,8 +43,8 @@ export function readFile(file: any) {
   });
 }
 
-export default function ass2vtt(ass: string | undefined) {
-  const re_ass = new RegExp(
+export const convertAssToVtt = (ass: string) => {
+  const regex = new RegExp(
     "Dialogue:\\s\\d," +
       "(\\d+:\\d\\d:\\d\\d.\\d\\d)," +
       "(\\d+:\\d\\d:\\d\\d.\\d\\d)," +
@@ -54,54 +56,75 @@ export default function ass2vtt(ass: string | undefined) {
   );
 
   function fixTime(time = "") {
-    const timeArray = time.split(/:/);
-    const secondsArray = timeArray[2].split(/\./);
+    const [hours, minutes, seconds, milliseconds] = time
+      .split(/[:.]/)
+      .map((item) => parseInt(item));
 
-    const hours = timeArray[0].padStart(2, "0");
-    const minutes = timeArray[1].padStart(2, "0");
-    const seconds = secondsArray[0].padStart(2, "0");
-    const milliseconds = secondsArray[1].padEnd(3, "0");
+    if (isNaN(milliseconds)) return "";
 
-    return `${hours}:${minutes}:${seconds}.${milliseconds}`;
+    return `${hours.toString().padStart(2, "0")}:${minutes
+      .toString()
+      .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}.${milliseconds
+      .toString()
+      .padStart(3, "0")}`;
   }
 
-  return (
-    "WEBVTT\n\n" +
-    ass
-      ?.split(/\r?\n/)
-      .map((line) => {
-        const m = line.match(re_ass);
-        if (!m) return null;
-        return {
-          start: fixTime(m[1].trim()),
-          end: fixTime(m[2].trim()),
-          text: m[5]
-            .replace(/{[\s\S]*?}/g, "")
-            .replace(/(\\N)/g, "\n")
-            .trim()
-            .split(/\r?\n/)
-            .map((item) => item.trim())
-            .join("\n"),
-        };
-      })
-      .filter((line) => line)
-      .map((line, index) => {
-        if (line) {
-          return (
-            index +
-            1 +
-            "\n" +
-            line.start +
-            " --> " +
-            line.end +
-            "\n" +
-            line.text
-          );
-        } else {
-          return "";
-        }
-      })
-      .filter((line) => line.trim())
-      .join("\n\n")
-  );
+  const lines = ass
+    .split(/\r?\n/)
+    .map((line: any) => {
+      const match = line.match(regex);
+
+      if (!match) return null;
+
+      const [, start, end, , , text] = match;
+
+      return {
+        start: fixTime(start),
+        end: fixTime(end),
+        text: text
+          .replace(/{[\s\S]*?}/g, "")
+          .replace(/(\\N)/g, "\n")
+          .trim(),
+      };
+    })
+    .filter(Boolean)
+    .map(
+      ({ start, end, text }: any, index: number) =>
+        `${index + 1}\n${start} --> ${end}\n${text}`
+    )
+    .join("\n\n");
+
+  return `WEBVTT\n\n${lines}`;
+};
+
+export function findSubtitleAtTime(
+  subtitles: Subtitle[],
+  time: number
+): Subtitle | undefined {
+  const timecode = formatTimecode(time);
+  return subtitles.find((subtitle) => {
+    const start = subtitle.Start;
+    const end = subtitle.End;
+    return start <= timecode && end >= timecode;
+  });
+}
+
+function formatTimecode(time: number): string {
+  const hours = Math.floor(time / 3600)
+    .toString()
+    .padStart(2, "0");
+  const minutes = Math.floor((time % 3600) / 60)
+    .toString()
+    .padStart(2, "0");
+  const seconds = Math.floor(time % 60)
+    .toString()
+    .padStart(2, "0");
+  const milliseconds = Math.floor((time % 1) * 1000)
+    .toString()
+    .padStart(3, "0");
+  return `${hours}:${minutes}:${seconds}.${milliseconds}`;
+}
+
+export function hexCode(colorCode: string) {
+  return `#` + parseInt(colorCode.substr(2), 16).toString(16).toUpperCase();
 }
