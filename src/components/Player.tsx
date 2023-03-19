@@ -1,75 +1,68 @@
 import { parse } from "ass-compiler";
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useContext } from "react";
 import { findSubtitleAtTime, hexCode } from "../utils";
+import { Context } from "../utils/contexts/Context";
 import { Subtitle } from "../utils/types";
 
-type Props = {
-  videoSrc: string | undefined;
-  subtitles: Subtitle[] | undefined;
-  ass: string | undefined;
-  currentTime: number | undefined;
-  setCurrentTime: React.Dispatch<React.SetStateAction<number | undefined>>;
-};
+interface Props {
+  videoSrc: string;
+}
 
-const Player = ({
-  videoSrc,
-  subtitles,
-  ass,
-  currentTime,
-  setCurrentTime,
-}: Props) => {
+const Player: React.FC<Props> = ({ videoSrc }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const subtitleRef = useRef<HTMLDivElement>(null);
-  const [currentSub, setCurrentSub] = useState<Subtitle>();
-  const [hover, setHover] = useState<boolean>();
+  const [currentSub, setCurrentSub] = useState<Subtitle | undefined>();
+  const [hover, setHover] = useState<boolean>(false);
+
+  const { subtitles, parsedAss, setCurrentTime, currentTime } =
+    useContext(Context);
 
   const handleTimeUpdate = () => {
     if (videoRef.current) {
-      if (subtitles) {
-        setCurrentSub(
-          findSubtitleAtTime(subtitles, videoRef.current.currentTime)
-        );
-      }
+      const currentSub = findSubtitleAtTime(
+        subtitles as Subtitle[],
+        videoRef.current.currentTime
+      );
+      setCurrentSub(currentSub);
       setCurrentTime(videoRef.current.currentTime);
     }
   };
 
   useEffect(() => {
-    if (ass) {
-      const formated = parse(ass);
-      const subtitle = subtitleRef.current;
-      if (subtitle) {
-        const currentStyle = formated.styles.style.find(
-          (e: any) => e.Name === currentSub?.Style
-        );
+    if (parsedAss && subtitleRef.current) {
+      const currentStyle = parsedAss.styles.style.find(
+        (e: any) => e.Name === currentSub?.Style
+      );
 
-        if (!currentStyle) return;
+      if (!currentStyle) return;
 
-        subtitle.style.textAlign = currentStyle?.Alignment as string;
-        subtitle.style.fontSize = (currentStyle?.Fontsize + "px") as string;
-        subtitle.style.fontWeight =
-          currentStyle?.Bold === "-1" ? "bold" : "normal";
-        subtitle.style.fontStyle =
-          currentStyle?.Italic === "-1" ? "italic" : "normal";
-        subtitle.style.color = hexCode(currentStyle?.PrimaryColour as string);
-        subtitle.style.backgroundColor = hexCode(
-          currentStyle?.BackColour as string
-        );
-        subtitle.style.textShadow = currentStyle?.Shadow as string;
-        subtitle.style.letterSpacing = currentStyle?.Spacing as string;
-        subtitle.style.wordSpacing = currentStyle?.Spacing as string;
-        subtitle.style.textDecoration =
-          currentStyle?.Underline === "-1" ? "underline" : "none";
-        subtitle.style.textShadow = ``;
-      }
+      const outline = Number(currentStyle.Outline);
+      const outlineColor = currentStyle.OutlineColour.slice(4);
 
-      return () => {
-        if (subtitle) {
-          subtitle.removeEventListener("load", () => {});
-        }
+      const style: React.CSSProperties = {
+        fontFamily: currentStyle.Fontname,
+        fontSize: `${currentStyle.Fontsize}px`,
+        fontWeight: currentStyle.Bold === "1" ? "bold" : "normal",
+        color: `#${currentStyle.PrimaryColour.slice(4)}`,
+        textShadow: `#${outlineColor} ${outline}px ${outline}px ${outline}px, #${outlineColor} ${outline}px ${outline}px ${outline}px, #${outlineColor} ${-outline}px ${outline}px ${outline}px, #${outlineColor} ${outline}px ${-outline}px ${outline}px, #${outlineColor} ${outline}px ${outline}px ${outline}px, #${outlineColor} ${-outline}px ${-outline}px ${outline}px, #${outlineColor} ${outline}px ${-outline}px ${outline}px, #${outlineColor} ${-outline}px ${outline}px ${outline}px, #${outlineColor} ${outline}px ${outline}px 0px, #${outlineColor} ${outline}px ${outline}px 0px, #${outlineColor} ${outline}px ${outline}px 0px`,
+        letterSpacing: `${currentStyle.Spacing}px`,
+        textDecoration:
+          currentStyle.StrikeOut === "1"
+            ? "line-through"
+            : currentStyle.Underline === "1"
+            ? "underline"
+            : "none",
+        textAlign:
+          currentStyle.Alignment === "2"
+            ? "center"
+            : currentStyle.Alignment === "4"
+            ? "justify"
+            : "left",
       };
+
+      Object.assign(subtitleRef.current.style, style);
     }
-  }, [subtitles, currentTime]);
+  }, [parsedAss, subtitles, currentSub, subtitleRef]);
 
   useEffect(() => {
     if (!subtitles) {
@@ -97,7 +90,7 @@ const Player = ({
           ref={subtitleRef}
         >
           <div className="inline-flex flex-col p-[0px_5px] mb-[20px]">
-            <h1 className="sub">{currentSub?.Text.combined}</h1>
+            <h1 className="sub">{currentSub?.Text.raw}</h1>
           </div>
         </div>
       </div>

@@ -1,31 +1,14 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import { convertAssToVtt } from "../utils";
+import { Context } from "../utils/contexts/Context";
 import { Subtitle } from "../utils/types";
 import Player from "./Player";
 
-type Props = {
-  subtitles: Subtitle[] | undefined;
-  ass: string | undefined;
-  currentTime: number | undefined;
-  setCurrentTime: React.Dispatch<React.SetStateAction<number | undefined>>;
-};
-
-const VideoPlayer = ({
-  subtitles,
-  ass,
-  currentTime,
-  setCurrentTime,
-}: Props) => {
+const VideoPlayer = () => {
   return (
     <>
       <div className="relative">
-        <Player
-          videoSrc={"https://artplayer.org/assets/sample/video.mp4"}
-          subtitles={subtitles}
-          ass={ass}
-          currentTime={currentTime}
-          setCurrentTime={setCurrentTime}
-        />
+        <Player videoSrc={"https://artplayer.org/assets/sample/video.mp4"} />
       </div>
     </>
   );

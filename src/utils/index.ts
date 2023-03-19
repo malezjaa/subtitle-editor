@@ -12,7 +12,6 @@ export function file2sub(file: any) {
       switch (ext) {
         case "ass": {
           const parsedASS = parse(text);
-          console.log(parsedASS);
           resolve(parsedASS);
           break;
         }
@@ -127,4 +126,21 @@ function formatTimecode(time: number): string {
 
 export function hexCode(colorCode: string) {
   return `#` + parseInt(colorCode.substr(2), 16).toString(16).toUpperCase();
+}
+
+export function hexToHColor(hexColor: string) {
+  const red = parseInt(hexColor.substring(1, 3), 16);
+  const green = parseInt(hexColor.substring(3, 5), 16);
+  const blue = parseInt(hexColor.substring(5, 7), 16);
+  const alpha = 0; // Ustawiamy przezroczystość na 0 (brak przezroczystości)
+
+  const hColor = `&H${blue.toString(16).toUpperCase().padStart(2, "0")}${red
+    .toString(16)
+    .toUpperCase()
+    .padStart(2, "0")}${green
+    .toString(16)
+    .toUpperCase()
+    .padStart(2, "0")}${alpha.toString(16).toUpperCase().padStart(2, "0")}`;
+
+  return hColor;
 }
