@@ -1,37 +1,48 @@
 import React, { useContext, useEffect, useState } from "react";
-import { file2sub, findSubtitleAtTime, readFile } from "../utils";
+import {
+  convertTimeToSeconds,
+  file2sub,
+  findSubtitleAtTime,
+  formatTimecode,
+  readFile,
+} from "../utils";
 import { Context } from "../utils/contexts/Context";
-import { convertToSplitedTime } from "../utils/date";
-import { Subtitle } from "../utils/types";
-import Input from "./Input";
 
 export function getExt(url: string) {
   return url.trim().toLowerCase().split(".").pop();
 }
 
 const Subtitles = () => {
-  const { subtitles, setSubtitles, setParsedAss, currentSub, setCurrentSub } =
-    useContext(Context);
+  const {
+    subtitles,
+    setSubtitles,
+    setParsedAss,
+    currentSub,
+    setCurrentSub,
+    video,
+    subtitleFile,
+  } = useContext(Context);
 
   const clearSubs = () => {
     setSubtitles([]);
   };
 
-  const handleSubtitleChange = (event: any) => {
-    const file = event.target.files[0];
+  useEffect(() => {
+    const file = subtitleFile;
     if (file) {
       const ext = getExt(file.name);
       if (["ass"].includes(ext as string)) {
         file2sub(file)
           .then(async (res: any) => {
             res.events.dialogue?.forEach((e: any, i: number) => {
-              e.End = convertToSplitedTime(e.End);
-              e.Start = convertToSplitedTime(e.Start);
+              e.End = formatTimecode(e.End);
+              e.Start = formatTimecode(e.Start);
               e.index = i;
             });
             clearSubs();
             setSubtitles(res.events.dialogue);
             setParsedAss(res);
+            setCurrentSub(res.events.dialogue[0]);
           })
           .catch((err: any) => {
             console.log(err);
@@ -40,7 +51,7 @@ const Subtitles = () => {
         console.log("error");
       }
     }
-  };
+  }, [subtitleFile]);
 
   const onInputClick = (event: any) => {
     event.target.value = "";
@@ -48,29 +59,6 @@ const Subtitles = () => {
 
   return (
     <>
-      {subtitles?.length && (
-        <div>
-          <button
-            className="btn btn-outline m-5 ml-20"
-            onClick={() => clearSubs()}
-          >
-            Wyczyść napisy.
-          </button>
-        </div>
-      )}
-
-      {!subtitles?.length && (
-        <div>
-          <input
-            type="file"
-            className="file-input ml-20 file-input-bordered file-input-primary w-full max-w-xs"
-            accept=".ass"
-            onClick={onInputClick}
-            onChange={handleSubtitleChange}
-          />
-        </div>
-      )}
-
       <div className="overflow-x-auto m-10 h-[350px]">
         <table className="table w-full">
           <thead>
@@ -86,7 +74,23 @@ const Subtitles = () => {
             {subtitles?.map((sub, i) => (
               <tr
                 key={i}
-                onClick={(e) => setCurrentSub(sub)}
+                onClick={(e) => {
+                  const time = convertTimeToSeconds(sub?.Start) + 0.01;
+
+                  if (!video) return;
+
+                  if (time > video?.duration) {
+                    return;
+                  }
+
+                  if (video) {
+                    setCurrentSub(sub);
+
+                    video.currentTime = time;
+
+                    video.pause();
+                  }
+                }}
                 className={`${i === currentSub?.index ? "active" : ""}`}
               >
                 <td>{i + 1}</td>

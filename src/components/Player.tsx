@@ -1,6 +1,6 @@
 import { parse } from "ass-compiler";
 import React, { useState, useRef, useEffect, useContext } from "react";
-import { findSubtitleAtTime, hexCode } from "../utils";
+import { convertTimeToSeconds, findSubtitleAtTime, hexCode } from "../utils";
 import { Context } from "../utils/contexts/Context";
 import { Subtitle } from "../utils/types";
 
@@ -9,16 +9,34 @@ interface Props {
 }
 
 const Player: React.FC<Props> = ({ videoSrc }) => {
+  const {
+    currentSub,
+    setCurrentSub,
+    subtitles,
+    parsedAss,
+    setCurrentTime,
+    currentTime,
+    setVideo,
+    videoFile,
+  } = useContext(Context);
   const videoRef = useRef<HTMLVideoElement>(null);
   const subtitleRef = useRef<HTMLDivElement>(null);
-  const [currentSub, setCurrentSub] = useState<Subtitle | undefined>();
   const [hover, setHover] = useState<boolean>(false);
 
-  const { subtitles, parsedAss, setCurrentTime, currentTime } =
-    useContext(Context);
+  useEffect(() => {
+    if (videoRef.current) {
+      setVideo(videoRef.current);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!subtitles) {
+      setCurrentSub(undefined);
+    }
+  }, [subtitles]);
 
   const handleTimeUpdate = () => {
-    if (videoRef.current) {
+    if (videoRef.current && subtitles) {
       const currentSub = findSubtitleAtTime(
         subtitles as Subtitle[],
         videoRef.current.currentTime
@@ -34,17 +52,19 @@ const Player: React.FC<Props> = ({ videoSrc }) => {
         (e: any) => e.Name === currentSub?.Style
       );
 
-      if (!currentStyle) return;
+      if (!currentStyle) {
+        return;
+      }
 
       const outline = Number(currentStyle.Outline);
-      const outlineColor = currentStyle.OutlineColour.slice(4);
+      const outlineColor = currentStyle.OutlineColour;
 
       const style: React.CSSProperties = {
         fontFamily: currentStyle.Fontname,
         fontSize: `${currentStyle.Fontsize}px`,
         fontWeight: currentStyle.Bold === "1" ? "bold" : "normal",
-        color: `#${currentStyle.PrimaryColour.slice(4)}`,
-        textShadow: `#${outlineColor} ${outline}px ${outline}px ${outline}px, #${outlineColor} ${outline}px ${outline}px ${outline}px, #${outlineColor} ${-outline}px ${outline}px ${outline}px, #${outlineColor} ${outline}px ${-outline}px ${outline}px, #${outlineColor} ${outline}px ${outline}px ${outline}px, #${outlineColor} ${-outline}px ${-outline}px ${outline}px, #${outlineColor} ${outline}px ${-outline}px ${outline}px, #${outlineColor} ${-outline}px ${outline}px ${outline}px, #${outlineColor} ${outline}px ${outline}px 0px, #${outlineColor} ${outline}px ${outline}px 0px, #${outlineColor} ${outline}px ${outline}px 0px`,
+        color: `${currentStyle.PrimaryColour}`,
+        textShadow: `${outlineColor} ${outline}px ${outline}px ${outline}px, ${outlineColor} ${outline}px ${outline}px ${outline}px, ${outlineColor} ${-outline}px ${outline}px ${outline}px, ${outlineColor} ${outline}px ${-outline}px ${outline}px, ${outlineColor} ${outline}px ${outline}px ${outline}px, ${outlineColor} ${-outline}px ${-outline}px ${outline}px, ${outlineColor} ${outline}px ${-outline}px ${outline}px, ${outlineColor} ${-outline}px ${outline}px ${outline}px, ${outlineColor} ${outline}px ${outline}px 0px, ${outlineColor} ${outline}px ${outline}px 0px, ${outlineColor} ${outline}px ${outline}px 0px`,
         letterSpacing: `${currentStyle.Spacing}px`,
         textDecoration:
           currentStyle.StrikeOut === "1"
@@ -70,31 +90,57 @@ const Player: React.FC<Props> = ({ videoSrc }) => {
     }
   }, [subtitles]);
 
+  useEffect(() => {
+    if (videoFile) {
+      const media = URL.createObjectURL(videoFile);
+      if (videoRef.current) {
+        videoRef.current.src = media;
+      }
+    }
+  }, [videoFile]);
+
+  const onInputClick = (event: any) => {
+    event.target.value = "";
+  };
+
   return (
-    <div>
-      <video
-        className="w-full h-full max-w-full z-[60]"
-        controls={hover ? true : false}
-        controlsList="nodownload"
-        ref={videoRef}
-        onTimeUpdate={handleTimeUpdate}
-        onMouseEnter={() => setHover(true)}
-        onMouseLeave={() => setHover(false)}
-      >
-        <source src={videoSrc} type="video/mp4" />
-        Przeglądarka nie obsługuje tagu video.
-      </video>
-      <div>
-        <div
-          className="z-[20] w-full text-center pointer-events-none transition-all duration-[200ms] ease-in-out absolute bottom-[10px] justify-center overflow-hidden flex"
-          ref={subtitleRef}
+    <>
+      <div className="relative">
+        <video
+          className="w-full h-full max-w-full z-[60]"
+          controls={hover ? true : false}
+          controlsList="nodownload"
+          ref={videoRef}
+          onTimeUpdate={handleTimeUpdate}
+          onMouseEnter={() => setHover(true)}
+          onMouseLeave={() => setHover(false)}
         >
-          <div className="inline-flex flex-col p-[0px_5px] mb-[20px]">
-            <h1 className="sub">{currentSub?.Text.raw}</h1>
+          <source src={videoSrc} type="video/mp4" />
+          Przeglądarka nie obsługuje tagu video.
+        </video>
+
+        <div>
+          <div
+            className="z-[20] w-full text-center pointer-events-none transition-all duration-[200ms] ease-in-out absolute bottom-[10px] justify-center overflow-hidden flex"
+            ref={subtitleRef}
+          >
+            <div className="inline-flex flex-col p-[0px_5px] mb-[20px]">
+              <h1 className="sub w-full">
+                <React.Fragment>
+                  {currentSub?.Text.raw.split(/\\N+/g).map((line, index) => (
+                    <div key={index}>
+                      {" "}
+                      {line.trim()}
+                      {index > 0 && <br />}
+                    </div>
+                  ))}
+                </React.Fragment>
+              </h1>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 

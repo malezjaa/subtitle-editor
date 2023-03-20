@@ -11,6 +11,12 @@ interface ContextProps {
   setCurrentTime: React.Dispatch<React.SetStateAction<number | undefined>>;
   currentSub: Subtitle | undefined;
   setCurrentSub: React.Dispatch<React.SetStateAction<Subtitle | undefined>>;
+  video: HTMLVideoElement | undefined;
+  setVideo: React.Dispatch<React.SetStateAction<HTMLVideoElement | undefined>>;
+  subtitleFile: File | undefined;
+  setSubtitleFile: React.Dispatch<React.SetStateAction<File | undefined>>;
+  videoFile: File | undefined;
+  setVideoFile: React.Dispatch<React.SetStateAction<File | undefined>>;
 }
 
 export const Context = createContext<ContextProps>({
@@ -22,4 +28,10 @@ export const Context = createContext<ContextProps>({
   setCurrentTime: () => {},
   currentSub: undefined,
   setCurrentSub: () => {},
+  video: undefined,
+  setVideo: () => {},
+  subtitleFile: undefined,
+  setSubtitleFile: () => {},
+  videoFile: undefined,
+  setVideoFile: () => {},
 });

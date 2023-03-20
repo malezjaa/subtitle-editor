@@ -108,7 +108,7 @@ export function findSubtitleAtTime(
   });
 }
 
-function formatTimecode(time: number): string {
+export function formatTimecode(time: number): string {
   const hours = Math.floor(time / 3600)
     .toString()
     .padStart(2, "0");
@@ -124,23 +124,41 @@ function formatTimecode(time: number): string {
   return `${hours}:${minutes}:${seconds}.${milliseconds}`;
 }
 
-export function hexCode(colorCode: string) {
-  return `#` + parseInt(colorCode.substr(2), 16).toString(16).toUpperCase();
+export function hexCode(aegisubColor: string) {
+  const color = aegisubColor.replace(/&H/g, "");
+  const red = parseInt(color.substring(2, 4), 16);
+  const green = parseInt(color.substring(4, 6), 16);
+  const blue = parseInt(color.substring(6, 8), 16);
+  const alpha = parseInt(color.substring(8, 10), 16);
+  return `#${red.toString(16).padStart(2, "0")}${green
+    .toString(16)
+    .padStart(2, "0")}${blue.toString(16).padStart(2, "0")}`;
 }
 
 export function hexToHColor(hexColor: string) {
   const red = parseInt(hexColor.substring(1, 3), 16);
   const green = parseInt(hexColor.substring(3, 5), 16);
   const blue = parseInt(hexColor.substring(5, 7), 16);
-  const alpha = 0; // Ustawiamy przezroczystość na 0 (brak przezroczystości)
-
-  const hColor = `&H${blue.toString(16).toUpperCase().padStart(2, "0")}${red
+  const alpha = 0;
+  const hColor = `&H${red.toString(16).toUpperCase().padStart(2, "0")}${green
     .toString(16)
     .toUpperCase()
-    .padStart(2, "0")}${green
+    .padStart(2, "0")}${blue.toString(16).toUpperCase().padStart(2, "0")}${alpha
     .toString(16)
     .toUpperCase()
-    .padStart(2, "0")}${alpha.toString(16).toUpperCase().padStart(2, "0")}`;
+    .padStart(2, "0")}`;
 
   return hColor;
+}
+
+export function convertTimeToSeconds(timeStr: string) {
+  const timeArr = timeStr.split(/[:.]/);
+  const hours = parseInt(timeArr[0]);
+  const minutes = parseInt(timeArr[1]);
+  const seconds = parseInt(timeArr[2]);
+  const milliseconds = parseInt(timeArr[3]);
+
+  const totalSeconds =
+    hours * 3600 + minutes * 60 + seconds + milliseconds / 1000;
+  return totalSeconds;
 }

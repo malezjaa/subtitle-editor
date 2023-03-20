@@ -1,6 +1,6 @@
 import { parse, ParsedASS, ParsedASSStyles } from "ass-compiler";
 import React, { useContext, useEffect, useState } from "react";
-import { hexToHColor } from "../utils";
+import { hexToHColor, hexCode } from "../utils";
 import { Context } from "../utils/contexts/Context";
 import { Subtitle } from "../utils/types";
 
@@ -33,7 +33,7 @@ const EditArea = () => {
     useContext(Context);
 
   useEffect(() => {
-    setValue(currentSub?.Text.raw as string);
+    setValue(currentSub?.Text.raw.replaceAll(`\`N`, " <br/> ") as string);
     setStartTime(currentSub?.Start);
     setEndTime(currentSub?.End);
   }, [currentSub]);
@@ -55,24 +55,32 @@ const EditArea = () => {
   useEffect(() => {
     if (!subtitles) {
       setValue("");
+      setMainColor("");
+      setOutlineColor("");
+      setFontSize("");
+      setEndTime("");
+      setStartTime("");
+      setSpacing("");
     }
   }, [subtitles]);
 
-  const handleChange = (e: any) => {
+  useEffect(() => {
     const curnFnt = parsedAss?.styles.style.find(
-      (f) => f.Name === e.target.value
+      (f) => f.Name === currentSub?.Style
     );
-
-    console.log(curnFnt);
 
     if (curnFnt) {
       setCurrentFont(curnFnt);
-      setMainColor("#" + curnFnt.PrimaryColour.slice(4));
-      setOutlineColor("#" + curnFnt.OutlineColour.slice(4));
+      curnFnt.PrimaryColour.startsWith("#")
+        ? ""
+        : setMainColor(hexCode(curnFnt.PrimaryColour));
+      curnFnt.OutlineColour.startsWith("#")
+        ? ""
+        : setOutlineColor(hexCode(curnFnt.OutlineColour));
       setFontSize(curnFnt.Fontsize);
       setSpacing(curnFnt.Spacing);
     }
-  };
+  }, [currentSub]);
 
   useEffect(() => {
     if (currentFont) {
@@ -80,15 +88,22 @@ const EditArea = () => {
         (f) => f.Name === currentFont.Name
       );
 
-      if (parsedAss && index !== undefined) {
-        parsedAss.styles.style[index].PrimaryColour = hexToHColor(
-          mainColor as string
-        );
-        parsedAss.styles.style[index].OutlineColour = hexToHColor(
-          outlineColor as string
-        );
-        parsedAss.styles.style[index].Fontsize = fontSize as string;
-        parsedAss.styles.style[index].Spacing = spacing as string;
+      if (parsedAss && index) {
+        mainColor
+          ? (parsedAss.styles.style[index].PrimaryColour = mainColor as string)
+          : "";
+
+        outlineColor
+          ? (parsedAss.styles.style[index].OutlineColour =
+              outlineColor as string)
+          : "";
+
+        fontSize
+          ? (parsedAss.styles.style[index].Fontsize = fontSize as string)
+          : "";
+        spacing
+          ? (parsedAss.styles.style[index].Spacing = spacing as string)
+          : "";
 
         setParsedAss(parsedAss);
       }
@@ -140,17 +155,7 @@ const EditArea = () => {
 
           {tab === "fonts" && (
             <div className="flex flex-col p-10">
-              <select
-                className="select select-primary w-full max-w-xs"
-                onChange={(e) => handleChange(e)}
-              >
-                <option defaultChecked>Wybierz czcionkę</option>
-                {parsedAss?.styles.style?.map((e, i) => (
-                  <option key={i}>{e.Name}</option>
-                ))}
-              </select>
-
-              <div className="flex flex-col p-3">
+              <div className="flex flex-col px-3">
                 {currentFont && (
                   <>
                     <div className="flex flex-row">
@@ -172,7 +177,7 @@ const EditArea = () => {
                           type="color"
                           className="p-0.5 rounded-lg"
                           value={outlineColor}
-                          onChange={(e) => setMainColor(e.target.value)}
+                          onChange={(e) => setOutlineColor(e.target.value)}
                         />
                       </div>
                     </div>
