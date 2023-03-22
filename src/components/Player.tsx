@@ -78,7 +78,10 @@ const Player: React.FC<Props> = ({ videoSrc }) => {
             : currentStyle.Alignment === "4"
             ? "justify"
             : "left",
+        fontStyle: currentStyle?.Italic === "-1" ? "italic" : "",
       };
+
+      console.log(currentStyle);
 
       Object.assign(subtitleRef.current.style, style);
     }

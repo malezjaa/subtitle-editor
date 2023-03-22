@@ -1,5 +1,5 @@
 import { parse, ParsedASS, ParsedASSStyles } from "ass-compiler";
-import React, { useContext, useEffect, useState } from "react";
+import React, { SyntheticEvent, useContext, useEffect, useState } from "react";
 import { hexToHColor, hexCode } from "../utils";
 import { Context } from "../utils/contexts/Context";
 import { Subtitle } from "../utils/types";
@@ -29,8 +29,14 @@ const EditArea = () => {
   const [outlineColor, setOutlineColor] = useState<string>();
   const [fontSize, setFontSize] = useState<string>();
   const [spacing, setSpacing] = useState<string>();
-  const { subtitles, setSubtitles, parsedAss, setParsedAss, currentSub } =
-    useContext(Context);
+  const {
+    subtitles,
+    setSubtitles,
+    parsedAss,
+    setParsedAss,
+    currentSub,
+    setCurrentSub,
+  } = useContext(Context);
 
   useEffect(() => {
     setValue(currentSub?.Text.raw.replaceAll(`\`N`, " <br/> ") as string);
@@ -110,6 +116,20 @@ const EditArea = () => {
     }
   }, [currentFont, mainColor, outlineColor, fontSize, spacing]);
 
+  const handleFontChange = (e: any) => {
+    if (currentSub) {
+      currentSub.Style = e.target.value;
+
+      if (parsedAss && currentSub) {
+        parsedAss.events.dialogue[currentSub.index].Style = e.target.value;
+
+        setParsedAss(parsedAss);
+
+        setCurrentSub(currentSub);
+      }
+    }
+  };
+
   return (
     <>
       <div className="flex flex-col p-10 w-1/2">
@@ -145,6 +165,21 @@ const EditArea = () => {
                   onChange={(e) => setEndTime(e.target.value)}
                 />
               </div>
+
+              <select
+                className="select bg-base-300 p-2 m-5 mt-0 w-full max-w-xs"
+                onChange={(e) => handleFontChange(e)}
+              >
+                {parsedAss?.styles.style.map((e, i) => (
+                  <option
+                    value={e.Name}
+                    selected={currentSub?.Style === e.Name ? true : false}
+                  >
+                    {e.Name}
+                  </option>
+                ))}
+              </select>
+
               <textarea
                 onChange={(e) => setValue(e.target.value)}
                 value={value}

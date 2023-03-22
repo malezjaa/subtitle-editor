@@ -4,7 +4,7 @@ export type Subtitle = {
   Text: Text;
   Style: string;
   Name: string;
-  index?: number;
+  index: number;
 };
 
 export type Text = {

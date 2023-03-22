@@ -9,7 +9,6 @@ import { Context } from "./utils/contexts/Context";
 import { Subtitle } from "./utils/types";
 
 function App() {
-  const [subtitles, setSubtitles] = useState<Subtitle[]>();
   const [styles, setStyles] = useState<any>();
   const [parsedAss, setParsedAss] = useState<ParsedASS | undefined>();
   const [currentSub, setCurrentSub] = useState<Subtitle | undefined>();
@@ -17,6 +16,13 @@ function App() {
   const [video, setVideo] = useState<HTMLVideoElement | undefined>();
   const [videoFile, setVideoFile] = useState<File | undefined>();
   const [subtitleFile, setSubtitleFile] = useState<File | undefined>();
+  const [subtitles, setSubtitles] = useState<Subtitle[]>();
+
+  useEffect(() => {
+    if (parsedAss) {
+      setSubtitles(parsedAss?.events.dialogue as any);
+    }
+  }, [parsedAss]);
 
   const onKeyDown = useCallback(
     (event: KeyboardEvent) => {
