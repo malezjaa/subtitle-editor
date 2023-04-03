@@ -3,6 +3,7 @@ import React, { useState, useRef, useEffect, useContext } from "react";
 import { convertTimeToSeconds, findSubtitleAtTime, hexCode } from "../utils";
 import { Context } from "../utils/contexts/Context";
 import { Subtitle } from "../utils/types";
+import Sub from "./Sub";
 
 interface Props {
   videoSrc: string;
@@ -29,69 +30,16 @@ const Player: React.FC<Props> = ({ videoSrc }) => {
     }
   }, []);
 
-  useEffect(() => {
-    if (!subtitles) {
-      setCurrentSub(undefined);
-    }
-  }, [subtitles]);
-
   const handleTimeUpdate = () => {
     if (videoRef.current && subtitles) {
-      const currentSub = findSubtitleAtTime(
+      const crnsub = findSubtitleAtTime(
         subtitles as Subtitle[],
         videoRef.current.currentTime
       );
-      setCurrentSub(currentSub);
+      setCurrentSub(crnsub);
       setCurrentTime(videoRef.current.currentTime);
     }
   };
-
-  useEffect(() => {
-    if (parsedAss && subtitleRef.current) {
-      const currentStyle = parsedAss.styles.style.find(
-        (e: any) => e.Name === currentSub?.Style
-      );
-
-      if (!currentStyle) {
-        return;
-      }
-
-      const outline = Number(currentStyle.Outline);
-      const outlineColor = currentStyle.OutlineColour;
-
-      const style: React.CSSProperties = {
-        fontFamily: currentStyle.Fontname,
-        fontSize: `${currentStyle.Fontsize}px`,
-        fontWeight: currentStyle.Bold === "1" ? "bold" : "normal",
-        color: `${currentStyle.PrimaryColour}`,
-        textShadow: `${outlineColor} ${outline}px ${outline}px ${outline}px, ${outlineColor} ${outline}px ${outline}px ${outline}px, ${outlineColor} ${-outline}px ${outline}px ${outline}px, ${outlineColor} ${outline}px ${-outline}px ${outline}px, ${outlineColor} ${outline}px ${outline}px ${outline}px, ${outlineColor} ${-outline}px ${-outline}px ${outline}px, ${outlineColor} ${outline}px ${-outline}px ${outline}px, ${outlineColor} ${-outline}px ${outline}px ${outline}px, ${outlineColor} ${outline}px ${outline}px 0px, ${outlineColor} ${outline}px ${outline}px 0px, ${outlineColor} ${outline}px ${outline}px 0px`,
-        letterSpacing: `${currentStyle.Spacing}px`,
-        textDecoration:
-          currentStyle.StrikeOut === "1"
-            ? "line-through"
-            : currentStyle.Underline === "1"
-            ? "underline"
-            : "none",
-        textAlign:
-          currentStyle.Alignment === "2"
-            ? "center"
-            : currentStyle.Alignment === "4"
-            ? "justify"
-            : "left",
-        fontStyle: currentStyle?.Italic === "-1" ? "italic" : "",
-      };
-
-      console.log(currentStyle);
-
-      Object.assign(subtitleRef.current.style, style);
-    }
-  }, [parsedAss, subtitles, currentSub, subtitleRef]);
-
-  useEffect(() => {
-    if (!subtitles) {
-      setCurrentSub(undefined);
-    }
-  }, [subtitles]);
 
   useEffect(() => {
     if (videoFile) {
@@ -101,10 +49,6 @@ const Player: React.FC<Props> = ({ videoSrc }) => {
       }
     }
   }, [videoFile]);
-
-  const onInputClick = (event: any) => {
-    event.target.value = "";
-  };
 
   return (
     <>
@@ -131,11 +75,7 @@ const Player: React.FC<Props> = ({ videoSrc }) => {
               <h1 className="sub w-full">
                 <React.Fragment>
                   {currentSub?.Text.raw.split(/\\N+/g).map((line, index) => (
-                    <div key={index}>
-                      {" "}
-                      {line.trim()}
-                      {index > 0 && <br />}
-                    </div>
+                    <Sub index={index} line={line} />
                   ))}
                 </React.Fragment>
               </h1>

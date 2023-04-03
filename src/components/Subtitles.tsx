@@ -43,7 +43,6 @@ const Subtitles = () => {
             setSubtitles(res.events.dialogue);
             setParsedAss(res);
             setCurrentSub(res.events.dialogue[0]);
-            console.log(res);
           })
           .catch((err: any) => {
             console.log(err);

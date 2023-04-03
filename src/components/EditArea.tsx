@@ -42,6 +42,10 @@ const EditArea = () => {
     setValue(currentSub?.Text.raw.replaceAll(`\`N`, " <br/> ") as string);
     setStartTime(currentSub?.Start);
     setEndTime(currentSub?.End);
+    const currentStyle = parsedAss?.styles.style.find(
+      (e: any) => e.Name === currentSub?.Style
+    );
+    setCurrentFont(currentStyle);
   }, [currentSub]);
 
   useEffect(() => {
@@ -112,15 +116,15 @@ const EditArea = () => {
           : "";
 
         setParsedAss(parsedAss);
+        setCurrentFont(parsedAss.styles.style[index]);
       }
     }
   }, [currentFont, mainColor, outlineColor, fontSize, spacing]);
 
   const handleFontChange = (e: any) => {
     if (currentSub) {
-      currentSub.Style = e.target.value;
-
       if (parsedAss && currentSub) {
+        currentSub.Style = e.target.value;
         parsedAss.events.dialogue[currentSub.index].Style = e.target.value;
 
         setParsedAss(parsedAss);
