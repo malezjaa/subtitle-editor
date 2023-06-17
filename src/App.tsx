@@ -1,4 +1,4 @@
-import { ParsedASS } from "ass-compiler";
+import { ParsedASS, ParsedASSEvent } from "ass-compiler";
 import { useCallback, useEffect, useState } from "react";
 import EditArea from "./components/EditArea";
 import Navbar from "./components/Layout/Navbar";
@@ -6,7 +6,7 @@ import Subtitles from "./components/Subtitles";
 import VideoPlayer from "./components/VideoPlayer";
 import { convertTimeToSeconds } from "./utils";
 import { Context } from "./utils/contexts/Context";
-import { Subtitle } from "./utils/types";
+import { FontType, Subtitle } from "./utils/types";
 
 function App() {
   const [styles, setStyles] = useState<any>();
@@ -17,6 +17,8 @@ function App() {
   const [videoFile, setVideoFile] = useState<File | undefined>();
   const [subtitleFile, setSubtitleFile] = useState<File | undefined>();
   const [subtitles, setSubtitles] = useState<Subtitle[]>();
+  const [currentFont, setCurrentFont] = useState<FontType | undefined>();
+  const [actors, setActors] = useState<string[] | undefined>();
 
   useEffect(() => {
     if (parsedAss) {
@@ -58,7 +60,7 @@ function App() {
           break;
       }
     },
-    [subtitles, currentSub]
+    [subtitles, currentSub, video]
   );
 
   useEffect(() => {
@@ -67,6 +69,19 @@ function App() {
       window.removeEventListener("keydown", onKeyDown);
     };
   }, [onKeyDown]);
+
+  useEffect(() => {
+    if (parsedAss) {
+      let x: string[] = [];
+      parsedAss.events.dialogue.forEach((sub: ParsedASSEvent) => {
+        x.push(sub.Name);
+      });
+
+      const uniqueArr = [...new Set(x)];
+
+      setActors(uniqueArr);
+    }
+  }, [parsedAss]);
 
   return (
     <>
@@ -86,6 +101,10 @@ function App() {
           setVideoFile,
           subtitleFile,
           setSubtitleFile,
+          currentFont,
+          setCurrentFont,
+          actors,
+          setActors,
         }}
       >
         <div className="flex flex-col w-full h-[100vh]">

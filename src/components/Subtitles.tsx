@@ -65,9 +65,9 @@ const Subtitles = () => {
             <tr>
               <th></th>
               <th>Start</th>
-              <th>Koniec</th>
-              <th>Aktor</th>
-              <th>Tekst</th>
+              <th>End</th>
+              <th>Actor</th>
+              <th>Text</th>
             </tr>
           </thead>
           <tbody>

@@ -1,6 +1,6 @@
-import { ParsedASS } from "ass-compiler";
-import { createContext, useContext } from "react";
-import { Subtitle } from "../types";
+import { ParsedASS, ParsedASSEvent, ParsedASSStyles } from "ass-compiler";
+import React, { createContext, useContext } from "react";
+import { FontType, Subtitle } from "../types";
 
 interface ContextProps {
   subtitles: Subtitle[] | undefined;
@@ -17,6 +17,10 @@ interface ContextProps {
   setSubtitleFile: React.Dispatch<React.SetStateAction<File | undefined>>;
   videoFile: File | undefined;
   setVideoFile: React.Dispatch<React.SetStateAction<File | undefined>>;
+  currentFont: FontType | undefined;
+  setCurrentFont: React.Dispatch<React.SetStateAction<FontType | undefined>>;
+  actors: string[] | undefined;
+  setActors: React.Dispatch<React.SetStateAction<string[] | undefined>>;
 }
 
 export const Context = createContext<ContextProps>({
@@ -34,4 +38,8 @@ export const Context = createContext<ContextProps>({
   setSubtitleFile: () => {},
   videoFile: undefined,
   setVideoFile: () => {},
+  currentFont: undefined,
+  setCurrentFont: () => {},
+  actors: undefined,
+  setActors: () => {},
 });

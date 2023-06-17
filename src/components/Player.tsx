@@ -21,7 +21,6 @@ const Player: React.FC<Props> = ({ videoSrc }) => {
     videoFile,
   } = useContext(Context);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const subtitleRef = useRef<HTMLDivElement>(null);
   const [hover, setHover] = useState<boolean>(false);
 
   useEffect(() => {
@@ -63,23 +62,18 @@ const Player: React.FC<Props> = ({ videoSrc }) => {
           onMouseLeave={() => setHover(false)}
         >
           <source src={videoSrc} type="video/mp4" />
-          Przeglądarka nie obsługuje tagu video.
+          Browser does not support video.
         </video>
 
-        <div>
-          <div
-            className="z-[20] w-full text-center pointer-events-none transition-all duration-[200ms] ease-in-out absolute bottom-[10px] justify-center overflow-hidden flex"
-            ref={subtitleRef}
-          >
-            <div className="inline-flex flex-col p-[0px_5px] mb-[20px]">
-              <h1 className="sub w-full">
-                <React.Fragment>
-                  {currentSub?.Text.raw.split(/\\N+/g).map((line, index) => (
-                    <Sub index={index} line={line} />
-                  ))}
-                </React.Fragment>
-              </h1>
-            </div>
+        <div className="z-[20] w-full text-center pointer-events-none transition-all duration-[200ms] ease-in-out absolute bottom-[10px] justify-center overflow-hidden flex">
+          <div className="inline-flex flex-col p-[0px_5px] mb-[20px]">
+            <h1 className="sub w-full">
+              <React.Fragment>
+                {currentSub?.Text.raw.split(/\\N+/g).map((line, index) => (
+                  <Sub index={index} line={line} />
+                ))}
+              </React.Fragment>
+            </h1>
           </div>
         </div>
       </div>

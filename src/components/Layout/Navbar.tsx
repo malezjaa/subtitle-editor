@@ -56,12 +56,12 @@ const Navbar = () => {
             <li onClick={(e) => onVideoClick()}>
               <a>
                 <AiOutlineVideoCameraAdd />
-                Importuj Video
+                Import video
               </a>
             </li>
             <li onClick={(e) => onSubtitleClick()}>
               <a>
-                <MdSubtitles /> Importuj Napisy
+                <MdSubtitles /> Import subtitles
               </a>
             </li>
           </ul>

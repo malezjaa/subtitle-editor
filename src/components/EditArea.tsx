@@ -3,18 +3,19 @@ import React, { SyntheticEvent, useContext, useEffect, useState } from "react";
 import { hexToHColor, hexCode } from "../utils";
 import { Context } from "../utils/contexts/Context";
 import { Subtitle } from "../utils/types";
+import Export from "./Export";
 
 const tabs = [
   {
-    name: "Edytuj",
+    name: "Edit",
     value: "edit",
   },
   {
-    name: "Czcionki",
+    name: "Fonts",
     value: "fonts",
   },
   {
-    name: "Eksportuj",
+    name: "Export",
     value: "export",
   },
 ];
@@ -24,7 +25,6 @@ const EditArea = () => {
   const [startTime, setStartTime] = useState<string>();
   const [endTime, setEndTime] = useState<string>();
   const [tab, setTab] = useState<string>("edit");
-  const [currentFont, setCurrentFont] = useState<any | undefined>();
   const [mainColor, setMainColor] = useState<string>();
   const [outlineColor, setOutlineColor] = useState<string>();
   const [fontSize, setFontSize] = useState<string>();
@@ -36,6 +36,9 @@ const EditArea = () => {
     setParsedAss,
     currentSub,
     setCurrentSub,
+    currentFont,
+    setCurrentFont,
+    actors,
   } = useContext(Context);
 
   useEffect(() => {
@@ -81,12 +84,8 @@ const EditArea = () => {
 
     if (curnFnt) {
       setCurrentFont(curnFnt);
-      curnFnt.PrimaryColour.startsWith("#")
-        ? ""
-        : setMainColor(hexCode(curnFnt.PrimaryColour));
-      curnFnt.OutlineColour.startsWith("#")
-        ? ""
-        : setOutlineColor(hexCode(curnFnt.OutlineColour));
+      setMainColor(curnFnt.PrimaryColour);
+      setOutlineColor(curnFnt.OutlineColour);
       setFontSize(curnFnt.Fontsize);
       setSpacing(curnFnt.Spacing);
     }
@@ -98,14 +97,13 @@ const EditArea = () => {
         (f) => f.Name === currentFont.Name
       );
 
-      if (parsedAss && index) {
+      if (parsedAss && index !== undefined) {
         mainColor
-          ? (parsedAss.styles.style[index].PrimaryColour = mainColor as string)
+          ? (parsedAss.styles.style[index].PrimaryColour = mainColor)
           : "";
 
         outlineColor
-          ? (parsedAss.styles.style[index].OutlineColour =
-              outlineColor as string)
+          ? (parsedAss.styles.style[index].OutlineColour = outlineColor)
           : "";
 
         fontSize
@@ -114,6 +112,8 @@ const EditArea = () => {
         spacing
           ? (parsedAss.styles.style[index].Spacing = spacing as string)
           : "";
+
+        console.log(parsedAss)
 
         setParsedAss(parsedAss);
         setCurrentFont(parsedAss.styles.style[index]);
@@ -126,6 +126,29 @@ const EditArea = () => {
       if (parsedAss && currentSub) {
         currentSub.Style = e.target.value;
         parsedAss.events.dialogue[currentSub.index].Style = e.target.value;
+
+        const index = parsedAss?.styles.style?.findIndex(
+          (f) => f.Name === e.target.value
+        );
+
+        setParsedAss(parsedAss);
+
+        setCurrentSub(currentSub);
+
+        setCurrentFont(parsedAss.styles.style[index]);
+      }
+    }
+  };
+
+  const handleActorChange = (e: any) => {
+    if (currentSub) {
+      if (parsedAss && currentSub) {
+        currentSub.Name = e.target.value;
+        parsedAss.events.dialogue[currentSub.index].Name = e.target.value;
+
+        const index = parsedAss?.styles.style?.findIndex(
+          (f) => f.Name === e.target.value
+        );
 
         setParsedAss(parsedAss);
 
@@ -184,6 +207,20 @@ const EditArea = () => {
                 ))}
               </select>
 
+              <select
+                className="select bg-base-300 p-2 m-5 mt-0 w-full max-w-xs"
+                onChange={(e) => handleActorChange(e)}
+              >
+                {actors?.map((e, i) => (
+                  <option
+                    value={e}
+                    selected={currentSub?.Name === e ? true : false}
+                  >
+                    {e}
+                  </option>
+                ))}
+              </select>
+
               <textarea
                 onChange={(e) => setValue(e.target.value)}
                 value={value}
@@ -198,31 +235,39 @@ const EditArea = () => {
                 {currentFont && (
                   <>
                     <div className="flex flex-row">
-                      <p className="text-white mt-1">Kolor:</p>
+                      <p className="text-white mt-1">Color:</p>
 
-                      <p className="ml-2 mt-1">Główny kolor</p>
+                      <p className="ml-2 mt-1">Main color</p>
                       <div className="ml-3">
                         <input
                           type="color"
                           className="p-0.5 rounded-lg"
-                          value={mainColor}
+                          value={
+                            mainColor?.startsWith("#")
+                              ? mainColor
+                              : hexCode(mainColor as string)
+                          }
                           onChange={(e) => setMainColor(e.target.value)}
                         />
                       </div>
 
-                      <p className="ml-2 mt-1">Kolor obramówki</p>
+                      <p className="ml-2 mt-1">Outline color</p>
                       <div className="ml-3">
                         <input
                           type="color"
                           className="p-0.5 rounded-lg"
-                          value={outlineColor}
+                          value={
+                            outlineColor?.startsWith("#")
+                              ? outlineColor
+                              : hexCode(outlineColor as string)
+                          }
                           onChange={(e) => setOutlineColor(e.target.value)}
                         />
                       </div>
                     </div>
 
                     <div className="flex flex-row mt-3">
-                      <p className="text-white mt-1">Wielkość Czcionki:</p>
+                      <p className="text-white mt-1">Font size:</p>
 
                       <input
                         type="number"
@@ -236,7 +281,7 @@ const EditArea = () => {
                     </div>
 
                     <div className="flex flex-row mt-3">
-                      <p className="text-white mt-1">Odstęp:</p>
+                      <p className="text-white mt-1">Spacing:</p>
 
                       <input
                         type="range"
@@ -251,6 +296,10 @@ const EditArea = () => {
                 )}
               </div>
             </div>
+          )}
+
+          {tab === "export" && (
+              <Export/>
           )}
         </div>
       </div>

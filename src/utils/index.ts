@@ -42,60 +42,6 @@ export function readFile(file: any) {
   });
 }
 
-export const convertAssToVtt = (ass: string) => {
-  const regex = new RegExp(
-    "Dialogue:\\s\\d," +
-      "(\\d+:\\d\\d:\\d\\d.\\d\\d)," +
-      "(\\d+:\\d\\d:\\d\\d.\\d\\d)," +
-      "([^,]*)," +
-      "([^,]*)," +
-      "(?:[^,]*,){4}" +
-      "([\\s\\S]*)$",
-    "i"
-  );
-
-  function fixTime(time = "") {
-    const [hours, minutes, seconds, milliseconds] = time
-      .split(/[:.]/)
-      .map((item) => parseInt(item));
-
-    if (isNaN(milliseconds)) return "";
-
-    return `${hours.toString().padStart(2, "0")}:${minutes
-      .toString()
-      .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}.${milliseconds
-      .toString()
-      .padStart(3, "0")}`;
-  }
-
-  const lines = ass
-    .split(/\r?\n/)
-    .map((line: any) => {
-      const match = line.match(regex);
-
-      if (!match) return null;
-
-      const [, start, end, , , text] = match;
-
-      return {
-        start: fixTime(start),
-        end: fixTime(end),
-        text: text
-          .replace(/{[\s\S]*?}/g, "")
-          .replace(/(\\N)/g, "\n")
-          .trim(),
-      };
-    })
-    .filter(Boolean)
-    .map(
-      ({ start, end, text }: any, index: number) =>
-        `${index + 1}\n${start} --> ${end}\n${text}`
-    )
-    .join("\n\n");
-
-  return `WEBVTT\n\n${lines}`;
-};
-
 export function findSubtitleAtTime(
   subtitles: Subtitle[],
   time: number
